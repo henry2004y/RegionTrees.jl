@@ -3,7 +3,7 @@ module RegionTrees
 using StaticArrays
 import StaticArrays: similar_type, Size
 using IterTools: chain
-import Base: show, size, getindex, convert, parent, @pure
+import Base: show, size, getindex, convert, parent
 export Cell,
        split!,
        isleaf,
