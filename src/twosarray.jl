@@ -1,8 +1,8 @@
 """
-Represents a static array with N dimensions whose size is
-exactly 2 along each dimension. This makes templating on
-the number of dimensions easier than with a regular
-SArray.
+    TwosArray{N, T, L}
+
+Represents a static array with N dimensions whose size is exactly 2 along each dimension.
+This makes templating on the number of dimensions easier than with a regular SArray.
 """
 struct TwosArray{N, T, L} <: StaticArray{NTuple{N, 2}, T, N}
     data::NTuple{L, T}

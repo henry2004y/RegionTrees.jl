@@ -1,7 +1,9 @@
 abstract type AbstractRefinery end
 
-needs_refinement(refinery::AbstractRefinery, cell) = error("Your refinery should implement this function")
-refine_data(refinery::AbstractRefinery, cell, indices) = error("Your refinery should implement this function")
+needs_refinement(refinery::AbstractRefinery, cell) =
+    error("Your refinery should implement this function")
+refine_data(refinery::AbstractRefinery, cell, indices) =
+    error("Your refinery should implement this function")
 
 function adaptivesampling!(root::Cell, refinery::AbstractRefinery)
     refinement_queue = [root]

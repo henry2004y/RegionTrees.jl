@@ -14,11 +14,12 @@ end
     L = 2^N
     return quote
         T2 = Base.promote_op(/, T, Int)
-        Cell{Data, N, T2, $L}(boundary,
-             data,
-             boundary.origin + boundary.widths / 2,
-             nothing,
-             nothing)
+        Cell{Data, N, T2, $L}(
+            boundary,
+            data,
+            boundary.origin + boundary.widths / 2,
+            nothing,
+            nothing)
     end
 end
 
@@ -71,7 +72,7 @@ split!(cell::Cell, child_data_function::Function) =
 
 function split!_impl(::Type{C}, child_data, ::Val{N}) where {C <: Cell, N}
     child_exprs = [:(Cell(child_boundary(cell, $(I.I)),
-                          child_data[$i])) for (i, I) in enumerate(CartesianIndices(ntuple(_ -> 2, Val(N))))]
+        child_data[$i])) for (i, I) in enumerate(CartesianIndices(ntuple(_ -> 2, Val(N))))]
     quote
         @assert isleaf(cell)
         cell.children = $(Expr(:call, :TwosArray, Expr(:tuple, child_exprs...)))
@@ -89,7 +90,8 @@ end
                 return cell
             end
             length(point) == $N || throw(DimensionMismatch("expected a point of length $N"))
-            @inbounds cell = $(Expr(:ref, :cell, [:(ifelse(point[$i] >= cell.divisions[$i], 2, 1)) for i in 1:N]...))
+            @inbounds cell = $(Expr(:ref, :cell,
+                [:(ifelse(point[$i] >= cell.divisions[$i], 2, 1)) for i in 1:N]...))
         end
     end
 end
