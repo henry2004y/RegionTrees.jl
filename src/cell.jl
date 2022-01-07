@@ -25,6 +25,7 @@ end
 
 @inline isleaf(cell::Cell) = cell.children === nothing
 @inline children(cell::Cell) = cell.children
+"Return the parent cell."
 @inline parent(cell::Cell) = cell.parent
 @inline center(cell::Cell) = center(cell.boundary)
 @inline vertices(cell::Cell) = vertices(cell.boundary)
@@ -96,6 +97,64 @@ end
     end
 end
 
+function findlevel(cell::Cell{Data, N}) where {Data, N}
+    #TODO: optimize later!
+    root = [p for p in allparents(cell)][end]
+    round(Int, log2(root.boundary.widths[1] / cell.boundary.widths[1]))
+end
+
+function findneighbor(cell::Cell{Data, N}, direction) where {Data, N}
+    @assert isleaf(cell) "Neighbor search is only available for active cells!"
+    neighbor = Cell[]
+    #TODO: optimize later!
+    root = [p for p in allparents(cell)][end]
+    (; origin, widths) = cell.boundary
+    ϵ = eps(eltype(origin))
+
+    if N == 1
+        if direction == :left
+            point = [origin[1] - ϵ]
+        else
+            point = [origin[1] + widths[1] + ϵ]
+        end
+        leaf = findleaf(root, point)
+        if leaf != cell # not domain boundary cell
+            push!(neighbor, leaf)
+        end
+    elseif N == 2
+        
+        if direction == :left
+            point = [origin[1] - ϵ, origin[2] + ϵ]
+        elseif direction == :right
+            point = [origin[1] + widths[1] + ϵ, origin[2] + ϵ]
+        elseif direction == :top
+            point = [origin[1] + ϵ, origin[2] + widths[2] + ϵ]
+        else
+            point = [origin[1] + ϵ, origin[2] - widths[2] - ϵ]
+        end
+
+        leaf = findleaf(root, point)
+
+        if leaf.boundary.widths[1] < widths[1] # refined
+            if direction == :left
+                push!(neighbor, children(leaf.parent)[2:2:4]...)
+            elseif direction == :right
+                push!(neighbor, children(leaf.parent)[1:2:3]...)
+            elseif direction == :top
+                push!(neighbor, children(leaf.parent)[1:2]...)
+            else
+                push!(neighbor, children(leaf.parent)[3:4]...)
+            end
+        elseif leaf != cell # not domain boundary cell
+            push!(neighbor, leaf)
+        end
+    else # N == 3
+        @error "To be implemented!"
+    end
+
+    return neighbor
+end
+
 function allcells(cell::Cell)
     Channel() do c
         queue = [cell]
@@ -125,7 +184,7 @@ function allparents(cell::Cell)
         while !isempty(queue)
             current = pop!(queue)
             p = parent(current)
-            if ! (p === nothing)
+            if !isnothing(p)
                 put!(c, p)
                 push!(queue, p)
             end
